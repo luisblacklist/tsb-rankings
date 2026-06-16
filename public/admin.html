@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Admin Panel · TSB Rankings</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0c0c10;--surface:#141418;--surface2:#1c1c22;
+      --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+      --text:#f1f1f1;--muted:#888;--hint:#555;
+      --accent:#7c6af7;--green:#22c55e;--red:#ef4444;--gold:#f5c518;
+    }
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+    .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center}
+    .login-card{
+      background:var(--surface);border:1px solid var(--border2);
+      border-radius:16px;padding:2.5rem;width:100%;max-width:380px;text-align:center;
+    }
+    .login-card i{font-size:40px;color:var(--accent);margin-bottom:1rem;display:block}
+    .login-card h1{font-size:22px;font-weight:600;margin-bottom:6px}
+    .login-card p{font-size:13px;color:var(--muted);margin-bottom:1.5rem}
+    .login-card input{
+      width:100%;padding:12px 16px;border-radius:10px;
+      border:1px solid var(--border2);background:var(--surface2);
+      color:var(--text);font-size:14px;font-family:inherit;
+      margin-bottom:12px;outline:none;
+    }
+    .login-card input:focus{border-color:var(--accent)}
+    .login-card button{
+      width:100%;padding:12px;border-radius:10px;
+      background:var(--accent);color:#fff;border:none;
+      font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;
+      transition:opacity .2s;
+    }
+    .login-card button:hover{opacity:.85}
+    .login-error{color:var(--red);font-size:12px;margin-top:8px;display:none}
+
+    .dashboard{display:none;padding:1.5rem}
+    .top-bar{
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:1.5rem;flex-wrap:wrap;gap:12px;
+    }
+    .top-bar h1{font-size:20px;font-weight:600;display:flex;align-items:center;gap:10px}
+    .top-bar h1 i{color:var(--accent)}
+    .logout-btn{
+      font-size:12px;padding:6px 14px;border-radius:20px;
+      border:1px solid var(--border2);background:transparent;
+      color:var(--muted);cursor:pointer;font-family:inherit;
+      transition:all .18s;display:flex;align-items:center;gap:6px;
+    }
+    .logout-btn:hover{color:var(--red);border-color:var(--red)}
+
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1.5rem}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem}
+    .stat-card .lbl{font-size:11px;color:var(--muted);letter-spacing:.5px;margin-bottom:6px}
+    .stat-card .val{font-size:24px;font-weight:700}
+
+    .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+    .table-header{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:1rem 1.25rem;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px;
+    }
+    .table-header h2{font-size:15px;font-weight:600}
+    .search-box{
+      display:flex;align-items:center;gap:8px;
+      background:var(--surface2);border:1px solid var(--border2);
+      border-radius:8px;padding:6px 12px;
+    }
+    .search-box i{color:var(--muted);font-size:15px}
+    .search-box input{
+      background:transparent;border:none;color:var(--text);
+      font-size:13px;font-family:inherit;outline:none;width:180px;
+    }
+    table{width:100%;border-collapse:collapse}
+    thead tr{background:var(--surface2)}
+    th{
+      padding:10px 16px;text-align:left;font-size:11px;
+      font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;
+    }
+    td{padding:12px 16px;font-size:13px;border-top:1px solid var(--border)}
+    tbody tr{transition:background .15s}
+    tbody tr:hover{background:var(--surface2)}
+    .ip-badge{
+      background:rgba(124,106,247,.15);color:#a89ff7;
+      padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500;font-family:monospace;
+    }
+    .nav-badge{font-size:11px;color:var(--muted);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .empty{text-align:center;padding:3rem;color:var(--hint)}
+    .empty i{font-size:40px;display:block;margin-bottom:8px}
+    .refresh-btn{
+      font-size:12px;padding:6px 14px;border-radius:20px;
+      border:1px solid var(--border2);background:transparent;
+      color:var(--muted);cursor:pointer;font-family:inherit;
+      transition:all .18s;display:flex;align-items:center;gap:6px;
+    }
+    .refresh-btn:hover{color:var(--green);border-color:var(--green)}
+    .live-dot{
+      display:inline-block;width:7px;height:7px;border-radius:50%;
+      background:var(--green);animation:pulse 1.5s infinite;
+    }
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+    .clear-btn{
+      font-size:12px;padding:6px 14px;border-radius:20px;
+      border:1px solid rgba(239,68,68,.3);background:transparent;
+      color:var(--red);cursor:pointer;font-family:inherit;
+      transition:all .18s;display:flex;align-items:center;gap:6px;
+    }
+    .clear-btn:hover{background:rgba(239,68,68,.1)}
+    .confirm-box{
+      background:var(--surface);border:1px solid rgba(239,68,68,.4);
+      border-radius:10px;padding:1rem;margin-bottom:1rem;
+      display:none;text-align:center;
+    }
+    .confirm-box p{font-size:13px;color:var(--muted);margin-bottom:10px}
+    .confirm-box div{display:flex;gap:8px;justify-content:center}
+    .btn-yes{padding:6px 16px;border-radius:8px;background:var(--red);color:#fff;border:none;cursor:pointer;font-family:inherit;font-size:13px}
+    .btn-no{padding:6px 16px;border-radius:8px;background:transparent;color:var(--muted);border:1px solid var(--border2);cursor:pointer;font-family:inherit;font-size:13px}
+  </style>
+</head>
+<body>
+
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <i class="ti ti-shield-lock"></i>
+    <h1>Admin Panel</h1>
+    <p>TSB Rankings · Acceso restringido</p>
+    <input type="password" id="passInput" placeholder="Contraseña admin" onkeydown="if(event.key==='Enter')login()"/>
+    <button onclick="login()"><i class="ti ti-login" style="margin-right:6px"></i>Entrar</button>
+    <div class="login-error" id="loginError">Contraseña incorrecta</div>
+  </div>
+</div>
+
+<div class="dashboard" id="dashboard">
+  <div class="top-bar">
+    <h1><i class="ti ti-layout-dashboard"></i> Panel Admin <span class="live-dot" style="margin-left:4px"></span></h1>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="refresh-btn" onclick="cargarVisitas()">
+        <i class="ti ti-refresh"></i> Actualizar
+      </button>
+      <button class="clear-btn" onclick="mostrarConfirm()">
+        <i class="ti ti-trash"></i> Limpiar registros
+      </button>
+      <button class="logout-btn" onclick="logout()">
+        <i class="ti ti-logout"></i> Salir
+      </button>
+    </div>
+  </div>
+
+  <div class="confirm-box" id="confirmBox">
+    <p>¿Seguro que quieres borrar todos los registros?</p>
+    <div>
+      <button class="btn-yes" onclick="limpiarRegistros()">Sí, borrar</button>
+      <button class="btn-no" onclick="ocultarConfirm()">Cancelar</button>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="lbl">Total visitas</div>
+      <div class="val" id="statTotal" style="color:var(--accent)">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="lbl">IPs únicas</div>
+      <div class="val" id="statUnicas" style="color:var(--green)">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="lbl">Hoy</div>
+      <div class="val" id="statHoy" style="color:var(--gold)">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="lbl">Última visita</div>
+      <div class="val" id="statUltima" style="font-size:13px;padding-top:4px;color:var(--muted)">—</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <h2>Registro de visitas</h2>
+      <div class="search-box">
+        <i class="ti ti-search"></i>
+        <input type="text" id="searchInput" placeholder="Buscar IP..." oninput="filtrar()"/>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>IP</th>
+            <th>Fecha y hora</th>
+            <th>Navegador</th>
+          </tr>
+        </thead>
+        <tbody id="tablaBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  const PASS = "admin1234";
+  let visitas = [];
+
+  function login(){
+    const val = document.getElementById("passInput").value;
+    if(val === PASS){
+      document.getElementById("loginWrap").style.display = "none";
+      document.getElementById("dashboard").style.display = "block";
+      cargarVisitas();
+    } else {
+      document.getElementById("loginError").style.display = "block";
+    }
+  }
+
+  function logout(){
+    document.getElementById("loginWrap").style.display = "flex";
+    document.getElementById("dashboard").style.display = "none";
+    document.getElementById("passInput").value = "";
+  }
+
+  async function cargarVisitas(){
+    try {
+      const res = await fetch("http://localhost:3000/api/admin", {
+        headers: { "x-admin-pass": PASS }
+      });
+      if(!res.ok) return;
+      visitas = await res.json();
+      visitas.reverse();
+      renderStats();
+      renderTabla(visitas);
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  function renderStats(){
+    document.getElementById("statTotal").textContent = visitas.length;
+    const unicas = new Set(visitas.map(v=>v.ip)).size;
+    document.getElementById("statUnicas").textContent = unicas;
+    const hoy = new Date().toDateString();
+    const visitasHoy = visitas.filter(v=>new Date(v.fecha).toDateString()===hoy).length;
+    document.getElementById("statHoy").textContent = visitasHoy;
+    if(visitas.length > 0){
+      const d = new Date(visitas[0].fecha);
+      document.getElementById("statUltima").textContent =
+        d.toLocaleDateString("es-DO",{day:"2-digit",month:"short"}) + " " +
+        d.toLocaleTimeString("es-DO",{hour:"2-digit",minute:"2-digit"});
+    }
+  }
+
+  function renderTabla(data){
+    const tbody = document.getElementById("tablaBody");
+    if(data.length === 0){
+      tbody.innerHTML = '<tr><td colspan="4" class="empty"><i class="ti ti-database-off"></i>Sin visitas aún</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.map((v,i)=>{
+      const fecha = new Date(v.fecha);
+      const fechaStr = fecha.toLocaleDateString("es-DO",{day:"2-digit",month:"short",year:"numeric"});
+      const horaStr  = fecha.toLocaleTimeString("es-DO",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+      const nav = v.navegador || "—";
+      const browser = nav.includes("Edg") ? "Edge"
+                    : nav.includes("Chrome") ? "Chrome"
+                    : nav.includes("Firefox") ? "Firefox"
+                    : nav.includes("Safari") ? "Safari"
+                    : "Otro";
+      return '<tr>'
+        + '<td style="color:var(--hint)">' + (i+1) + '</td>'
+        + '<td><span class="ip-badge">' + v.ip + '</span></td>'
+        + '<td style="color:var(--muted)">' + fechaStr + ' ' + horaStr + '</td>'
+        + '<td><div style="font-size:13px;font-weight:500">' + browser + '</div>'
+        + '<div class="nav-badge">' + nav + '</div></td>'
+        + '</tr>';
+    }).join("");
+  }
+
+  function filtrar(){
+    const q = document.getElementById("searchInput").value.toLowerCase();
+    const filtradas = visitas.filter(v => v.ip.toLowerCase().includes(q));
+    renderTabla(filtradas);
+  }
+
+  function mostrarConfirm(){ document.getElementById("confirmBox").style.display = "block" }
+  function ocultarConfirm(){ document.getElementById("confirmBox").style.display = "none" }
+
+  async function limpiarRegistros(){
+    try {
+      await fetch("http://localhost:3000/api/limpiar", {
+        method: "POST",
+        headers: { "x-admin-pass": PASS }
+      });
+      ocultarConfirm();
+      cargarVisitas();
+    } catch(e){ console.error(e) }
+  }
+
+  setInterval(cargarVisitas, 30000);
+</script>
+</body>
+</html>
