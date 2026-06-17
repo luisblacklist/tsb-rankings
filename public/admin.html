@@ -226,7 +226,7 @@
 
   async function cargarVisitas(){
     try {
-      const res = await fetch("http://localhost:3000/api/admin", {
+      const res = await fetch("http://localhost:8080/api/admin", {
         headers: { "x-admin-pass": PASS }
       });
       if(!res.ok) return;
