@@ -7,7 +7,8 @@ app.use(express.json());
 app.use(cors());
 app.use(express.static('public'));
 
-// Memoria temporal si no se puede escribir en disco
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
 let memoriaVisitas = [];
 
 function leerVisitas() {
@@ -62,4 +63,4 @@ app.post('/api/limpiar', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log('Puerto: ' + PORT));
+app.listen(PORT, '0.0.0.0', () => console.log('Puerto: ' + PORT));
