@@ -3,6 +3,8 @@ const fs = require('fs');
 const cors = require('cors');
 const app = express();
 
+app.set('trust proxy', true);
+
 app.use(express.json());
 app.use(cors());
 app.use(express.static('public'));
@@ -16,7 +18,7 @@ function leerVisitas() {
     if (fs.existsSync('visitas.json')) {
       return JSON.parse(fs.readFileSync('visitas.json', 'utf8'));
     }
-  } catch(e) {}
+  } catch (e) {}
   return memoriaVisitas;
 }
 
@@ -25,42 +27,57 @@ function guardarVisita(visita) {
     const data = leerVisitas();
     data.push(visita);
     fs.writeFileSync('visitas.json', JSON.stringify(data, null, 2));
-  } catch(e) {
+  } catch (e) {
     memoriaVisitas.push(visita);
   }
 }
 
 app.get('/api/visita', (req, res) => {
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const ip =
+    req.headers['x-forwarded-for']?.split(',')[0].trim() ||
+    req.headers['x-real-ip'] ||
+    req.ip ||
+    req.socket.remoteAddress ||
+    'Desconocida';
+
   const visita = {
-    ip: ip,
+    ip,
     fecha: new Date().toISOString(),
     navegador: req.headers['user-agent']
   };
+
   guardarVisita(visita);
   res.json({ ok: true });
 });
 
 app.get('/api/admin', (req, res) => {
   const pass = req.headers['x-admin-pass'];
+
   if (pass !== 'admin1234') {
     return res.status(401).json({ error: 'No autorizado' });
   }
+
   res.json(leerVisitas());
 });
 
 app.post('/api/limpiar', (req, res) => {
   const pass = req.headers['x-admin-pass'];
+
   if (pass !== 'admin1234') {
     return res.status(401).json({ error: 'No autorizado' });
   }
+
   try {
     fs.writeFileSync('visitas.json', '[]');
-  } catch(e) {
+  } catch (e) {
     memoriaVisitas = [];
   }
+
   res.json({ ok: true });
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => console.log('Puerto: ' + PORT));
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log('Puerto: ' + PORT);
+});
