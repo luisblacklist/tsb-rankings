@@ -349,6 +349,9 @@ function render(){
 }
 
 render();
+// Registrar visita automáticamente
+fetch('/api/visita')
+  .catch(err => console.error('Error registrando visita:', err));
 </script>
 </body>
 </html>
